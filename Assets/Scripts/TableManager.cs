@@ -14,23 +14,32 @@ public class TableManager : MonoBehaviour
         Instance = this;
     }
 
-
-    public bool TryPlaceTrayOnTable(TrayBase tray)
+    public IEnumerator TryPlaceTrayOnTable(TrayBase tray, System.Action<bool> onComplete = null)
     {
         for (int i = 0; i < traySlots.Length; i++)
         {
             if (traySlots[i].childCount == 0)
             {
+                tray.transform.SetParent(null); 
+                tray.gameObject.transform.position += new Vector3(0, 0, -3); //bumps the tray abowe grid
+                yield return StartCoroutine(ObjectMover.Instance.MoveObject(
+                    tray.gameObject,
+                    traySlots[i].position + new Vector3(0,0,-3),
+                    0.4f,
+                    -1f 
+                ));
+
                 tray.transform.SetParent(traySlots[i]);
-                tray.transform.localPosition = new Vector3(0,0,-1);
+                tray.transform.localPosition = new Vector3(0, 0, -1); // secure it
                 tray.isOnTable = true;
-                return true;
+
+                onComplete?.Invoke(true);
+                yield break;
             }
         }
-
-        Debug.Log("Table is full. Cannot place tray.");
-        return false;
+        onComplete?.Invoke(false);
     }
+
 
     public bool IsTableFull()
     {
