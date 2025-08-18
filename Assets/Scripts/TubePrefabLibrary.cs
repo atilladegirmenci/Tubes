@@ -6,7 +6,6 @@ using UnityEngine;
 public struct TubePrefabEntry
 {
     public ColorType color;
-   // public TrayBase.TrayTypes type;
     public GameObject prefab;
 }
 
@@ -15,7 +14,7 @@ public class TubePrefabLibrary : ScriptableObject
 {
     public TubePrefabEntry[] entries;
 
-    public GameObject GetPrefab(ColorType color /*TrayBase.TrayTypes type*/)
+    public GameObject GetPrefab(ColorType color)
     {
         foreach (var e in entries)
         {

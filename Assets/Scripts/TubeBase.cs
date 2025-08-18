@@ -4,15 +4,7 @@ using UnityEngine;
 
 public abstract class TubeBase : MonoBehaviour
 {
-    //public enum TubeColor
-    //{
-    //    Blue,
-    //    Green,
-    //    Purple,
-    //    Red,
-    //    White,
-    //    Yellow
-    //};
+    
     public ColorType color;
     public bool inTray;
     public bool canPickUp;

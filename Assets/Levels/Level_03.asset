@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7a9df438a0908d43906e925c41745f2, type: 3}
+  m_Name: Level_03
+  m_EditorClassIdentifier: 
+  levelName: level 3
+  tubeCount: 300
+  sameColorSpawnBias: 8
+  AllowedColors: 00000000010000000300000005000000
+  smallTraySpawnWeight: 45
+  mediumTraySpawnWeight: 40
+  largeTraySpawnWeight: 15
+  unlockedSlotCount: 4

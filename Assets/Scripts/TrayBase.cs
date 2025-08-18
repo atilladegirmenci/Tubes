@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,15 +6,7 @@ using static TrayBase;
 
 public abstract class TrayBase : MonoBehaviour
 {
-    //public enum TrayColors
-    //{
-    //    Blue,
-    //    Green,
-    //    Purple,
-    //    Red,
-    //    White,
-    //    Yellow
-    //}
+    [HideInInspector] public TableSlots currentSlot;
     public enum TrayTypes
     {
         Small,
@@ -23,15 +16,18 @@ public abstract class TrayBase : MonoBehaviour
     public ColorType trayColor;
     public TrayTypes trayType;
     public int MaxCapacity => GetCapacity(trayType);
+    public float lenght => GetLenght(trayType);
+    
     public int currentCapacity = 0;
 
     public bool isOnTable;
+    public bool canSelect=true;
 
     public Transform[] tubePos;
 
     public int gridCol;
     public int gridRow;
-    public float lenght => GetLenght(trayType);
+    
     private static readonly Dictionary<TrayTypes, float> TrayLengths = new Dictionary<TrayTypes, float>()
     {
         { TrayTypes.Small, 0.83f },
@@ -44,10 +40,26 @@ public abstract class TrayBase : MonoBehaviour
         { TrayTypes.Medium, 6 },
         { TrayTypes.Large, 10 }
     };
-
+   
     public virtual void OnSelected()
     {
         
+    }
+    public void SetSlot(TableSlots slot)
+    {
+        currentSlot = slot;
+        canSelect = false;
+        currentSlot.isOccupied = true;
+        transform.SetParent(slot.transform);
+        transform.localPosition = new Vector3(0, 0, -1);
+    }
+    public void RemoveFromSlot()
+    {
+        if (currentSlot != null)
+        {
+            currentSlot.isOccupied = false;
+            currentSlot = null;
+        }
     }
     public  bool CheckIsFull()
     {
@@ -63,6 +75,6 @@ public abstract class TrayBase : MonoBehaviour
     }
     public virtual bool CanSelect()
     {
-        return true;
+        return canSelect;
     }
 }

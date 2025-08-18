@@ -15,7 +15,7 @@ public class TraySpawnerEditor : Editor
 
         if (GUILayout.Button("Spawn Tray Grid"))
         {
-            spawner.SpawnTrayGrid();
+            //spawner.SpawnTrayGrid();
             EditorUtility.SetDirty(spawner);
         }
 

@@ -18,6 +18,7 @@ public class Tray : TrayBase
                     Debug.Log($"Tray {trayColor}, {trayType} placed successfully!");
                     TubeQueueManager.Instance.TryFillTrayFromTubeQueue();
                     TrayGridManager.Instance.RemoveTrayFromGrid(this);
+                    TraySpawner.Instance.SetCanSelect(true);
                 }
                 else
                 {
@@ -32,6 +33,6 @@ public class Tray : TrayBase
     }
     public override bool CanSelect()
     {
-        return true;
+        return canSelect;
     }
 }

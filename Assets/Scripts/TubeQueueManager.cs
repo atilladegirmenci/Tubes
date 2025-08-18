@@ -10,19 +10,20 @@ public class TubeQueueManager : MonoBehaviour
     public static TubeQueueManager Instance;
     public TubePrefabLibrary tubeLibrary;
     [SerializeField] private Transform spawnParent;
-    [SerializeField] public int queueLength;
+    [SerializeField] private int queueLength;
     public Transform[] tubePositions;
-    [SerializeField] public List<ColorType> spawnableTubeColors = new List<ColorType>();
+    [SerializeField] private List<ColorType> spawnableTubeColors = new List<ColorType>();
+    public Dictionary<ColorType,int> colorCounts = new Dictionary<ColorType,int>();
 
     [Header("TUBE SPAWN BIAS SETTINGS")]
-    [SerializeField] private float sameColorBias = 2f; // bias weight for back to back same colors (chance to get same color)
-    [SerializeField] private float streakDecay = 0.5f; // gets decresed on every same color (chance decreses to get back to b same color)
-    [Header("TUBES ON SCENE")]
+    [SerializeField] private float sameColorBias; // bias weight for back to back same colors (chance to get same color)
+    [SerializeField] private float streakDecay; // gets decresed on every same color (chance decreses to get back to b same color)
 
+    [Header("TUBES ON SCENE")]
     [SerializeField] private List<ColorType> tubeQueue = new List<ColorType>();
     [SerializeField] private List<GameObject> visibleTubeObjects = new List<GameObject>();
 
-    [SerializeField] private TextMeshProUGUI tubeCount;
+    [SerializeField] private TextMeshProUGUI tubeCountText;
 
     private bool isFillingTube = false;
     private int maxVisibleTubes;
@@ -32,23 +33,35 @@ public class TubeQueueManager : MonoBehaviour
     {
         Instance = this;
     }
-    private void Start()
+
+    public void Initialize()
     {
+        spawnableTubeColors = LevelConfig.Instance.GetColors();
+        queueLength = LevelConfig.Instance.GetTubeCount();
+        sameColorBias = LevelConfig.Instance.GetBias();
         maxVisibleTubes = tubePositions.Length;
+        
 
         for (int i = 0; i < queueLength; i++)
         {
-            var color = GenerateNextTubeColor(tubeQueue);
-            
-            tubeQueue.Add(color); // only colors get added to the logic queue
-        }
+            ColorType color = GenerateNextTubeColor(tubeQueue);
 
-        tubeCount.text = tubeQueue.Count.ToString();
+            tubeQueue.Add(color); // only colors get added to the logic queue
+
+            if (!colorCounts.ContainsKey(color)) //count colors to spawn trays
+                colorCounts[color] = 0;
+
+            colorCounts[color]++;
+        }
+        tubeCountText.text = tubeQueue.Count.ToString();
+
+        TraySpawner.Instance.Initialize(colorCounts); //spawn trays, sent color counts
 
         OnTubeQueueUpdateComplete += HandleTubeQueueUpdated;
-
         HandleTubeQueueUpdated();
     }
+   
+  
     private void HandleTubeQueueUpdated()
     {
         RefreshVisibleTubes();
@@ -176,7 +189,7 @@ public class TubeQueueManager : MonoBehaviour
             float zOffset = -1.9f + targetTray.currentCapacity * 0.1f;
             Transform pos = targetTray.tubePos[targetTray.currentCapacity];
 
-            yield return StartCoroutine(ObjectMover.Instance.MoveObject(tubeGO, pos.position, 0.25f, zOffset));
+            yield return StartCoroutine(ObjectMover.Instance.MoveObject(tubeGO, pos.position + new Vector3(0,0.15f,0), 0.25f, zOffset));
 
             tube.transform.SetParent(pos);
             tube.inTray = true;
@@ -185,6 +198,7 @@ public class TubeQueueManager : MonoBehaviour
             if (targetTray.CheckIsFull())
             {
                 StartCoroutine(DestroyTrayAfterDelay(targetTray.gameObject, 1.5f));
+                //move blanket down
             }
 
             Debug.Log($"Tube of color {color} added to tray: {targetTray.name}");
@@ -193,7 +207,7 @@ public class TubeQueueManager : MonoBehaviour
             tubeQueue.RemoveAt(0);
             visibleTubeObjects.RemoveAt(0);
 
-            tubeCount.text = tubeQueue.Count.ToString();
+            tubeCountText.text = tubeQueue.Count.ToString();
         }
         else
         {
@@ -206,11 +220,11 @@ public class TubeQueueManager : MonoBehaviour
 
     private TrayBase FindAvailableTray(ColorType color)
     {
-        foreach (Transform slot in TableManager.Instance.traySlots)
+        foreach (var slot in TableManager.Instance.slots)
         {
-            if (slot.childCount == 0) continue;
+            if (slot.transform.childCount == 0) continue;
 
-            TrayBase tray = slot.GetChild(0).GetComponent<TrayBase>();
+            TrayBase tray = slot.transform.GetChild(0).GetComponent<TrayBase>();
             if (tray != null && tray.trayColor == color && tray.currentCapacity < tray.MaxCapacity)
             {
                 return tray;
@@ -223,11 +237,17 @@ public class TubeQueueManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
 
+        TrayBase trayBase = tray.GetComponent<TrayBase>();
+        if (trayBase != null)
+        {
+            trayBase.RemoveFromSlot();
+        }
+
         foreach (Transform child in tray.transform)
         {
             Destroy(child.gameObject);
         }
-
+        
         Destroy(tray);
     }
     private void OnDestroy()
